@@ -1,0 +1,25 @@
+stages:
+  - image
+  - deploy
+
+ami:
+  stage: image
+  image: gitlab.radius.solutions:4567/dev-ops/infra/docker/packer-runner:ac3a2c51cb362dfd06c4115c9856df2502f64b38
+  script:
+    - cd packer
+    - packer build template.json
+  tags:
+    - dind
+    - docker
+
+deploy:
+  stage: deploy
+  image: gitlab.radius.solutions:4567/dev-ops/infra/docker/terraform-runner:d3801a69025d80b2d884b7f4911732197490e345
+  before_script:
+    - apt install gettext -y
+  script:
+    - envsubst < ./terraform/variables.tf | tee ./terraform/variables.tf >/dev/null 2>&1 
+    - cd terraform
+    - terraform init
+    - terraform destroy -auto-approve
+    - terraform apply -auto-approve

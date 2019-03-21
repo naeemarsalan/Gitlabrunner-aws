@@ -1,0 +1,39 @@
+{
+    "variables": {
+        "aws_region": "eu-west-1",
+        "aws_ami_name": "gitlab_runner-{{isotime \"02Jan2006\"}}"
+    },
+
+    "builders": [{
+        "type": "amazon-ebs",
+        "region": "eu-west-1",
+        "instance_type": "t2.micro",
+        "ssh_username": "ubuntu",
+	"force_deregister": "true",
+	"force_delete_snapshot": "true",
+        "ami_name": "{{user `aws_ami_name`}}",
+        "ami_description": "Gitlab Runner with docker",
+        "associate_public_ip_address": "false",
+        "encrypt_boot": "true",
+	"source_ami": "ami-08d658f84a6d84a80",
+	"subnet_id":"",
+	"vpc_id":"",
+        "tags": {
+	  "Stage": "development",
+	  "Project": "Devops",
+          "Owner": "CI",
+          "Name": "Gitlab Scaled Runner"
+        }
+    }],
+
+    "provisioners": [{
+	    "type": "file",
+	    "source": "./scripts/init/gitlab_register.sh",
+	    "destination": "/tmp/gitlab_register.sh"
+    },
+	{
+            "type": "shell",
+            "script": "scripts/init/runner-init.sh"
+    }
+    ]
+}
